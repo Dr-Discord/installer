@@ -1,0 +1,211 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  background-color: #202225;
+  color: #dcddde;
+  --titlebar-height: 40px;
+  overflow: hidden;
+}
+* { user-select: none }
+#titlebar {
+  height: var(--titlebar-height);
+  width: 100vw;
+  display: flex;
+}
+#logo {
+  height: var(--titlebar-height);
+  width: var(--titlebar-height);
+  position: relative;
+}
+#logo svg {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+#titlebar .spacer {
+  flex: 1;
+  -webkit-app-region: drag;
+}
+#close-app {
+  padding: 2px;
+  box-sizing: border-box;
+  height: var(--titlebar-height);
+  width: var(--titlebar-height);
+  display: flex;
+  position: relative;
+}
+#close-app > svg {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  fill: #b9bbbe
+}
+#close-app:hover > svg {
+  fill: #dcddde
+}
+#close-app:hover:active > svg {
+  fill: #fff
+}
+
+#content {
+  width: calc(100vw - 20px);
+  height: 250px;
+  padding: 10px;
+  border-radius: 8px;
+  box-sizing: border-box;
+  overflow: hidden;
+  background-color: #36393f;
+  margin-left: 10px;
+}
+.discord-type {
+  display: flex;
+  align-items: center;
+  width: calc(100vw - 40px);
+  box-sizing: border-box;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+}
+.discord-type::after {
+  content: "";
+  background-color: #202225;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  border-radius: 8px;
+  border: 1px solid #202225;
+}
+.discord-type.selected::after {
+  background-color: #1fad4e;
+}
+.discord-type.selected .discord-img {
+  background-color: #202225;
+}
+.discord-type:not(:last-child) {
+  margin-bottom: 10px;
+}
+.discord-spacer, .footer-spacer {
+  flex: 1;
+}
+.discord-path-name {
+  margin-left: 10px;
+}
+.discord-name {
+  font-size: large;
+}
+.discord-path {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  width: calc(100vw - 190px);
+  font-size: small;
+}
+.doesnt-exist { cursor: not-allowed }
+.doesnt-exist::after { 
+  opacity: .8;
+}
+.discord-img {
+  border-radius: 8px;
+  width: 48px;
+  height: 48px;
+}
+.discord-img img {
+  width: 48px;
+  height: 48px;
+}
+.discord-path-select {
+  cursor: pointer;
+  padding: 6px 8px;
+  border: 1px solid #202225;
+  background-color: #36393f;
+  border-radius: 8px;
+}
+#installing-logs {
+  margin-top: 10px;
+  height: calc(100vh - (var(--titlebar-height) * 2) - 30px - 1rem);
+  border-radius: 8px;
+  background: #2f3136;
+  padding: 10px;
+  box-sizing: border-box;
+  overflow-y: scroll;
+}
+#installing-logs::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+#installing-logs::-webkit-scrollbar-corner {
+  background-color: transparent;
+}
+#installing-logs::-webkit-scrollbar-thumb {
+  background-color: #202225;
+  min-height: 40px;
+}
+#installing-logs::-webkit-scrollbar-thumb, #installing-logs::-webkit-scrollbar-track {
+  border: 4px solid transparent;
+  background-clip: padding-box;
+  border-radius: 8px;
+}
+.scroller-kQBbkU::-webkit-scrollbar-track {
+  margin-bottom: 8px;
+}
+#installing-logs::-webkit-scrollbar-thumb, #installing-logs::-webkit-scrollbar-track {
+  border: 4px solid transparent;
+  background-clip: padding-box;
+  border-radius: 8px;
+}
+
+#footer {
+  width: 100vw;
+  height: var(--titlebar-height);
+  display: flex;
+  align-items: center;
+  font-size: small;
+  color: #b9bbbe;
+}
+.footer-action {
+  margin-right: 10px;
+  padding: 4px 6px;
+  background-color: #36393f;
+  cursor: pointer;
+  border-radius: 2px;
+}
+.footer-action.disabled {
+  cursor: not-allowed;
+  opacity: .8;
+}
+.footer-action:hover {
+  background-color: #1fad4e;
+}
+#footer-buttons {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+.footer-button {
+  margin-left: 10px;
+  padding: 4px;
+  background-color: #36393f;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  fill: #b9bbbe;
+  box-sizing: border-box;
+}
+.footer-button path {
+  fill: #b9bbbe
+}
+.footer-button:hover > svg path {
+  fill: #dcddde
+}
+.footer-button:hover:active > svg path {
+  fill: #fff
+}

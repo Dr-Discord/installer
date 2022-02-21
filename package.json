@@ -1,0 +1,19 @@
+{
+  "name": "installer",
+  "version": "1.0.0",
+  "description": "a installer to install Discord-Re-envisioned",
+  "main": "./src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npm run build:darwin && npm run build:linux && npm run build:windows",
+    "build:darwin": "npx electron-packager ./ installer --platform=darwin --icon=./src/icon.ico --overwrite --appname dr_Installer",
+    "build:linux": "npx electron-packager ./ installer --platform=linux --icon=./src/icon.ico --overwrite --appname dr_Installer",
+    "build:windows": "npx electron-packager ./ installer --platform=win32 --icon=./src/icon.ico --overwrite --appname dr_Installer",
+    "open": "npx electron ./"
+  },
+  "author": "doggybootsy",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^17.0.1"
+  }
+}
