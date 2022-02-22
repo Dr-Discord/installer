@@ -63,9 +63,7 @@ function domLoaded() {
   document.getElementById("github").onclick = () => shell.openExternal("https://github.com/Dr-Discord")
   document.getElementById("website").onclick = () => shell.openExternal("https://Dr-Discord.github.io")
   document.getElementById("close-app").onclick = () => quit()
-  document.getElementById("close").onclick = () => quit()
 
-  document.getElementById("go-back").onclick = () => showOtherPage()
   for (const ele of Array.from(document.querySelectorAll("#footer-buttons > div"))) {
     let tooltip = {}
     ele.onmouseout = () => {
@@ -121,15 +119,15 @@ function domLoaded() {
   }
   function showOtherPage(title) {
     this.value = !this.value
-    document.getElementById("close").hidden = !this.value
     document.getElementById("install").hidden = this.value
     document.getElementById("uninstall").hidden = this.value
     document.getElementById("select-discord").hidden = this.value
     document.getElementById("installing-discord").hidden = !this.value
     document.getElementById("installing-into").innerHTML = title
-    document.getElementById("go-back").hidden = !this.value
     con.clear()
   }
+  Object.defineProperty(global, "showOtherPage", { value: showOtherPage })
+  Object.defineProperty(global, "con", { value: con })
   
   for (const discord of Array.from(document.querySelectorAll(".discord-type"))) {
     let path = getDiscordResources(discord.id)
