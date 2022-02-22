@@ -21,6 +21,7 @@ app.whenReady().then(() => {
     thickFrame: false,
     title: "Discord Re-envisioned - Installer",
     backgroundColor: "#202225",
+    show: false,
     webPreferences: {
       webSecurity: true,
       preload: join(__dirname, "preload.js"),
@@ -28,7 +29,8 @@ app.whenReady().then(() => {
     }
   })
   win.loadURL(page)
-
+  win.once("ready-to-show", () => win.show())
+  
   ipcMain.handle("showMessageBox", (event, options) => dialog.showMessageBox(win, options))
 
   ipcMain.handle("selectDirectory", (event, path) => new Promise(res => {

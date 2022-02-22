@@ -8,6 +8,34 @@ body {
   overflow: hidden;
 }
 * { user-select: none }
+
+#loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #202225;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-app-region: drag;
+  flex-direction: column;
+}
+#loader.fade {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+#loader.fade #loader-logo {
+  transform: translateY(-246px);
+  transition: transform 0.25s ease;
+}
+#loader.fade #loader-logo+div {
+  transform: translateY(246px);
+  transition: transform 0.25s ease;
+}
+
 #titlebar {
   height: var(--titlebar-height);
   width: 100vw;
@@ -35,6 +63,7 @@ body {
   width: var(--titlebar-height);
   display: flex;
   position: relative;
+  z-index: 100;
 }
 #close-app > svg {
   position: absolute;
@@ -125,17 +154,29 @@ body {
   cursor: pointer;
   padding: 6px 8px;
   border: 1px solid #202225;
-  background-color: #36393f;
+  background-color: #292b2f;
   border-radius: 8px;
 }
 #installing-logs {
   margin-top: 10px;
   height: calc(100vh - (var(--titlebar-height) * 2) - 30px - 1rem);
   border-radius: 8px;
-  background: #2f3136;
+  background: #202225;
   padding: 10px;
   box-sizing: border-box;
   overflow-y: scroll;
+}
+.log {
+  font-size: small;
+  margin-bottom: 8px;
+  display: flex;
+}
+.log > :first-child {
+  font-size: smaller;
+  margin-right: 4px;
+}
+.log > :last-child {
+  transform: translateY(2px)
 }
 #installing-logs::-webkit-scrollbar {
   width: 16px;
@@ -145,7 +186,7 @@ body {
   background-color: transparent;
 }
 #installing-logs::-webkit-scrollbar-thumb {
-  background-color: #202225;
+  background-color: #36393f;
   min-height: 40px;
 }
 #installing-logs::-webkit-scrollbar-thumb, #installing-logs::-webkit-scrollbar-track {
