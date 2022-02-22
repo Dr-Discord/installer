@@ -16,11 +16,15 @@ window.onkeydown = function(evt) {
 const DrDir = join(getPath("appData"), "Discord_Re-envisioned")
 
 function makeDrDir() {
-  if (!fs.existsSync(DrDir)) fs.mkdirSync(DrDir)
+  if (fs.existsSync(DrDir)) fs.rmSync(DrDir, { recursive: true, force: true })
+  fs.mkdirSync(DrDir)
   fs.copyFileSync(join(__dirname, "..", "injection", "index.js"), join(DrDir, "index.js"))
   fs.copyFileSync(join(__dirname, "..", "injection", "preload.js"), join(DrDir, "preload.js"))
 }
-makeDrDir()
+if (!eval(localStorage.getItem("hasMadeDir") ?? "false")) {
+  makeDrDir()
+  localStorage.setItem("hasMadeDir", true)
+}
 
 function getDiscordResources(type) {
   if (process.platform === "darwin") {
@@ -37,7 +41,7 @@ function getDiscordResources(type) {
     let version = ["app-0", 0]
     const dir = join(process.env.LOCALAPPDATA, `Discord${type === "stable" ? "" : ` ${type}`}`)
     if (!fs.existsSync(dir)) return
-    let versionFolders = fs.readdirSync(dir).filter(e => e.startsWith("app-"))
+    let versionFolders = fs.reloadirSync(dir).filter(e => e.startsWith("app-"))
     for (let versionFolder of versionFolders) {
       let num = Number(versionFolder.replace("app-", "").replaceAll(".", ""))
       if (num > version[1]) {
@@ -46,6 +50,7 @@ function getDiscordResources(type) {
         ]
       }
     }
+    if (!fs.existsSync(join(dir, version[0], "resources"))) return
     return join(dir, version[0], "resources")
   }
 }
@@ -60,6 +65,30 @@ function domLoaded() {
   document.getElementById("close-app").onclick = () => quit()
   document.getElementById("close").onclick = () => quit()
 
+  const reload = document.getElementById("reload")
+  let rotated = 0
+  reload.firstElementChild.style.transition = "all 0.5s ease-in-out"
+  reload.firstElementChild.style.transform = `rotate(${rotated}deg)`
+  reload.onclick = () => {
+    rotated = (rotated + 360)
+    reload.firstElementChild.style.transform = `rotate(${rotated}deg)`
+  }
+  for (const ele of Array.from(document.querySelectorAll("#footer-buttons > div"))) {
+    let tooltip = {}
+    ele.onmouseout = () => {
+      tooltip.remove()
+    }
+    ele.onmouseover = () => {
+      tooltip = document.createElement("div")
+      tooltip.id = "tooltip"
+      tooltip.style.position = "fixed"
+      const bounding = ele.getBoundingClientRect()
+      tooltip.style.left = `${bounding.right + 5}px`
+      tooltip.innerHTML = ele.getAttribute("tooltip")
+      document.body.appendChild(tooltip)
+      tooltip.style.top = `${(bounding.top - tooltip.clientHeight) + 24}px`
+    }
+  }
   function showOtherPage(title) {
     document.getElementById("close").hidden = false
     document.getElementById("install").hidden = true
@@ -108,12 +137,13 @@ function domLoaded() {
   for (const discord of Array.from(document.querySelectorAll(".discord-type"))) {
     let path = getDiscordResources(discord.id)
     const pathChild = discord.children[1].children[1].children[0]
-    pathChild.innerHTML = path
-    install[discord.id].path = path
-    discord.children[3].onclick = () => require("electron").ipcRenderer.invoke("selectDirectory", install[discord.id].path).then((path) => {
+    function setPath(path) {
+      if (!path) path = "???"
       pathChild.innerHTML = path
       install[discord.id].path = path
-    })
+    }
+    setPath(path)
+    discord.children[3].onclick = () => require("electron").ipcRenderer.invoke("selectDirectory", install[discord.id].path).then((path) => setPath(path))
     if (path) {
       discord.classList.remove("doesnt-exist")
       discord.onclick = (event) => {
@@ -193,6 +223,7 @@ function domLoaded() {
           } catch (error) { return con.error(error.message) }
           con.success("Made 'package.json' file!")
           con.success("Installed perfectly!")
+          makeDrDir()
           setTimeout(_install, 500)
           ind++
         }

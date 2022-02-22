@@ -250,3 +250,20 @@ body {
 .footer-button:hover:active > svg path {
   fill: #fff
 }
+
+#tooltip {
+  background: #2f3136;
+  padding: 2px 4px;
+  box-sizing: border-box;
+  border-radius: 4px;
+}
+#tooltip::after {
+  content: "";
+  position: absolute;
+  background-color: #2f3136;
+  width: 4px;
+  height: 4px;
+  transform: rotate(45deg) translateY(-50%);
+  left: -4px;
+  top: 50%;
+}
