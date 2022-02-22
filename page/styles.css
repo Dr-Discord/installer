@@ -166,10 +166,15 @@ body {
   box-sizing: border-box;
   overflow-y: scroll;
 }
+.space-log {
+  margin-bottom: 2rem;
+}
 .log {
   font-size: small;
-  margin-bottom: 8px;
   display: flex;
+}
+.log:not(:last-child) {
+  margin-bottom: .5rem;
 }
 .log > :first-child {
   font-size: smaller;

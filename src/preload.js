@@ -115,6 +115,11 @@ function domLoaded() {
     log: function(log) {
       this._log("✔️", log)
     },
+    space: function() {
+      document.getElementById("installing-logs").append(Object.assign(document.createElement("div"), {
+        className: "space-log"
+      }))
+    },
     clear: function() { document.getElementById("installing-logs").innerHTML = "" }
   }
   function showOtherPage(title) {
@@ -160,6 +165,7 @@ function domLoaded() {
         _uninstall()
         function _uninstall() {
           if (ind > versions.length) return
+          if (ind !== 1) con.space()
           const { path } = install[versions[ind - 1]]
           con.log(`Uninstalling from Discord ${versions[ind - 1]}`)
           const app = join(path, "app")
@@ -190,6 +196,7 @@ function domLoaded() {
         _install()
         function _install() {
           if (ind > versions.length) return
+          if (ind !== 1) con.space()
           const { path } = install[versions[ind - 1]]
           con.log(`Installing into Discord ${versions[ind - 1]}`)
           const app = join(path, "app")
