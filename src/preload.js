@@ -65,14 +65,7 @@ function domLoaded() {
   document.getElementById("close-app").onclick = () => quit()
   document.getElementById("close").onclick = () => quit()
 
-  const reload = document.getElementById("reload")
-  let rotated = 0
-  reload.firstElementChild.style.transition = "all 0.5s ease-in-out"
-  reload.firstElementChild.style.transform = `rotate(${rotated}deg)`
-  reload.onclick = () => {
-    rotated = (rotated + 360)
-    reload.firstElementChild.style.transform = `rotate(${rotated}deg)`
-  }
+  document.getElementById("go-back").onclick = () => showOtherPage()
   for (const ele of Array.from(document.querySelectorAll("#footer-buttons > div"))) {
     let tooltip = {}
     ele.onmouseout = () => {
@@ -90,14 +83,16 @@ function domLoaded() {
     }
   }
   function showOtherPage(title) {
-    document.getElementById("close").hidden = false
-    document.getElementById("install").hidden = true
-    document.getElementById("uninstall").hidden = true
-    document.getElementById("select-discord").hidden = true
-    document.getElementById("installing-discord").hidden = false
+    this.value = !this.value
+    document.getElementById("close").hidden = !this.value
+    document.getElementById("install").hidden = this.value
+    document.getElementById("uninstall").hidden = this.value
+    document.getElementById("select-discord").hidden = this.value
+    document.getElementById("installing-discord").hidden = !this.value
     document.getElementById("installing-into").innerHTML = title
+    document.getElementById("go-back").hidden = !this.value
   }
-
+  
   fetch("https://discord.com/api/guilds/864267123694370836/widget.json").then(e => e.json()).then(json => {
     document.getElementById("discord").onclick = () => shell.openExternal(json.instant_invite)
   })
