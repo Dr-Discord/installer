@@ -217,6 +217,13 @@ body {
   background-color: #36393f;
   cursor: pointer;
   border-radius: 2px;
+  color: #b9bbbe
+}
+.footer-action:hover {
+  color: #dcddde
+}
+.footer-action:hover:active {
+  color: #fff
 }
 .footer-action.disabled {
   cursor: not-allowed;
