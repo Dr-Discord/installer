@@ -82,16 +82,6 @@ function domLoaded() {
       tooltip.style.top = `${(bounding.top - tooltip.clientHeight) + 24}px`
     }
   }
-  function showOtherPage(title) {
-    this.value = !this.value
-    document.getElementById("close").hidden = !this.value
-    document.getElementById("install").hidden = this.value
-    document.getElementById("uninstall").hidden = this.value
-    document.getElementById("select-discord").hidden = this.value
-    document.getElementById("installing-discord").hidden = !this.value
-    document.getElementById("installing-into").innerHTML = title
-    document.getElementById("go-back").hidden = !this.value
-  }
   
   fetch("https://discord.com/api/guilds/864267123694370836/widget.json").then(e => e.json()).then(json => {
     document.getElementById("discord").onclick = () => shell.openExternal(json.instant_invite)
@@ -126,7 +116,19 @@ function domLoaded() {
     },
     log: function(log) {
       this._log("✔️", log)
-    }
+    },
+    clear: function() { document.getElementById("installing-logs").innerHTML = "" }
+  }
+  function showOtherPage(title) {
+    this.value = !this.value
+    document.getElementById("close").hidden = !this.value
+    document.getElementById("install").hidden = this.value
+    document.getElementById("uninstall").hidden = this.value
+    document.getElementById("select-discord").hidden = this.value
+    document.getElementById("installing-discord").hidden = !this.value
+    document.getElementById("installing-into").innerHTML = title
+    document.getElementById("go-back").hidden = !this.value
+    con.clear()
   }
   
   for (const discord of Array.from(document.querySelectorAll(".discord-type"))) {
