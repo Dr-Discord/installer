@@ -39,9 +39,9 @@ function getDiscordResources(type) {
   }
   if (process.platform === "win32") {
     let version = ["app-0", 0]
-    const dir = join(process.env.LOCALAPPDATA, `Discord${type === "stable" ? "" : ` ${type}`}`)
+    const dir = join(process.env.LOCALAPPDATA, `Discord${type === "stable" ? "" : `${type}`}`)
     if (!fs.existsSync(dir)) return
-    let versionFolders = fs.reloadirSync(dir).filter(e => e.startsWith("app-"))
+    let versionFolders = fs.readdirSync(dir).filter(e => e.startsWith("app-"))
     for (let versionFolder of versionFolders) {
       let num = Number(versionFolder.replace("app-", "").replaceAll(".", ""))
       if (num > version[1]) {

@@ -42,6 +42,7 @@ body {
   display: flex;
 }
 #logo {
+  -webkit-app-region: drag;
   height: var(--titlebar-height);
   width: var(--titlebar-height);
   position: relative;
@@ -113,7 +114,11 @@ body {
   border: 1px solid #202225;
 }
 .discord-type.selected::after {
-  background-color: #1fad4e;
+  border: #3c7753 solid 3px;
+  box-shadow: inset 0 0 5px 0px #3c7753;
+}
+.discord-type.selected:hover{
+  filter: hue-rotate(16deg);
 }
 .discord-type.selected .discord-img {
   background-color: #202225;
@@ -122,7 +127,9 @@ body {
   margin-bottom: 10px;
 }
 .discord-spacer, .footer-spacer {
-  flex: 1;
+  width: 100%;
+  -webkit-app-region: drag;
+  height: 100%;
 }
 .discord-path-name {
   margin-left: 10px;
@@ -216,13 +223,15 @@ body {
   font-size: small;
   color: #b9bbbe;
 }
+
 .footer-action {
   margin-right: 10px;
   padding: 4px 6px;
   background-color: #36393f;
   cursor: pointer;
   border-radius: 2px;
-  color: #b9bbbe
+  color: #b9bbbe;
+  font-weight: bold;
 }
 .footer-action:hover {
   color: #dcddde
@@ -237,8 +246,11 @@ body {
 .footer-action:hover {
   background-color: #1fad4e;
 }
+.footer-action#uninstall:hover {
+  background-color: #ad1f37;
+}
 #footer-buttons {
-  flex: 1;
+
   display: flex;
   align-items: center;
 }
