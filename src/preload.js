@@ -88,7 +88,6 @@ function domLoaded() {
   })
   const { version } = require(join(__dirname, "..", "package.json"))
   fetch("https://api.github.com/repos/Dr-Discord/installer/releases").then(e => e.json()).then((e) => {
-    console.log("test");
     if (e[0].tag_name !== version) showMessageBox({
       message: "Your installer is out of date! Want to make",
       buttons: ["Install", "Cancel"],
@@ -114,10 +113,13 @@ function domLoaded() {
     }
   }
   const con = {
-    _log: (emoji, log) => document.getElementById("installing-logs").append(Object.assign(document.createElement("div"), {
-      className: "log",
-      innerHTML: `<span>${emoji}:</span><span>${log}</span>`
-    })),
+    _log: (emoji, log) => {
+      console.log(emoji.length);
+      document.getElementById("installing-logs").append(Object.assign(document.createElement("div"), {
+        className: "log",
+        innerHTML: emoji.length === 2 ? `<span>${emoji}:</span><span>${log}</span>` : emoji
+      }))
+    },
     error: function(err) {
       this._log("❌", err)
     },
@@ -128,7 +130,7 @@ function domLoaded() {
       this._log("✔️", log)
     },
     log: function(log) {
-      this._log("✔️", log)
+      this._log(log)
     },
     space: function() {
       document.getElementById("installing-logs").append(Object.assign(document.createElement("div"), {
