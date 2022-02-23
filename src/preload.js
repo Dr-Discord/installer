@@ -7,6 +7,8 @@ webFrame.setVisualZoomLevelLimits(1, 1)
 const getPath = ipcRenderer.sendSync.bind(null, "getPath")
 function quit() { ipcRenderer.sendSync("quit") }
 
+const showMessageBox = ipcRenderer.invoke.bind(null, "showMessageBox")
+
 Object.defineProperty(global, "require", { value: require })
 
 window.onkeydown = function(evt) {
@@ -84,6 +86,19 @@ function domLoaded() {
   fetch("https://discord.com/api/guilds/864267123694370836/widget.json").then(e => e.json()).then(json => {
     document.getElementById("discord").onclick = () => shell.openExternal(json.instant_invite)
   })
+  const { version } = require(join(__dirname, "..", "package.json"))
+  fetch("https://api.github.com/repos/Dr-Discord/installer/releases").then(e => e.json()).then((e) => {
+    console.log("test");
+    if (e[0].tag_name !== version) showMessageBox({
+      message: "Your installer is out of date! Want to make",
+      buttons: ["Install", "Cancel"],
+      cancelId: 1
+    }).then(({ response }) => {
+      if (!response) return
+      shell.openExternal(e[0].assets.find(r => r.name.startsWith(process.platform === "linux" ? "linux" : process.platform === "win32" ? "windows" : "mac")).browser_download_url)
+    })
+  })
+
   const install = {
     stable: {
       path: null,

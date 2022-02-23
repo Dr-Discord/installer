@@ -1,7 +1,6 @@
-const { app, BrowserWindow, ipcMain, dialog } = require("electron")
+const { app, BrowserWindow, ipcMain, dialog, shell } = require("electron")
 const { join } = require("path")
 const { format } = require("url")
-
 app.commandLine.appendSwitch("disable-pinch")
 
 ipcMain.on("getPath", (event, id) => event.returnValue = app.getPath(id))
