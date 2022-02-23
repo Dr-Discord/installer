@@ -5,15 +5,33 @@
   "main": "./src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npm run build:darwin && npm run build:linux && npm run build:windows",
-    "build:darwin": "npx electron-packager ./ installer --platform=darwin --icon=./src/icon.ico --overwrite --appname dr_Installer",
-    "build:linux": "npx electron-packager ./ installer --platform=linux --icon=./src/icon.ico --overwrite --appname dr_Installer",
-    "build:windows": "npx electron-packager ./ installer --platform=win32 --icon=./src/icon.ico --overwrite --appname dr_Installer",
-    "open": "npx electron ./"
+    "build": "npx electron-builder -mwl",
+    "dev": "npx electron ./"
   },
   "author": "doggybootsy",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^17.0.1"
+    "electron": "^17.0.1",
+    "electron-packager": "^15.4.0"
+  },
+  "build": {
+    "appId": "com.installer.app",
+    "win": {
+      "target": "portable",
+      "icon": "./assets/icon.ico"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "./assets/icon.ico"
+    },
+    "mac": {
+      "target": "zip",
+      "type": "distribution",
+      "icon": "./assets/icon.icns"
+    },
+    "portable": {
+      "unicode": false,
+      "artifactName": "installer.exe"
+    }
   }
 }
