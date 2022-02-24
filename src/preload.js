@@ -135,15 +135,14 @@ const actions = {
 
 function domLoaded() {
   const { version } = require(join(__dirname, "..", "package.json"))
-  fetch("https://api.github.com/repos/Dr-Discord/installer/releases").then(e => e.json()).then((e) => {
-    console.log("test");
-    if (e[0].tag_name !== version) showMessageBox({
+  fetch("https://api.github.com/repos/Dr-Discord/installer/releases").then(e => e.json()).then(([e]) => {
+    if (Number(e.tag_name.replaceAll(".", "")) < Number(version.replaceAll(".", ""))) showMessageBox({
       message: "Your installer is out of date! Want to update?",
-      buttons: ["Install", "Cancel"],
-      cancelId: 1
+      buttons: ["Cancel", "Install"],
+      cancelId: 0
     }).then(({ response }) => {
       if (!response) return
-      shell.openExternal(e[0].assets.find(r => r.name.startsWith(process.platform === "linux" ? "linux" : process.platform === "win32" ? "windows" : "mac")).browser_download_url)
+      shell.openExternal(e.assets.find(r => r.name.startsWith(process.platform === "linux" ? "linux" : process.platform === "win32" ? "windows" : "mac")).browser_download_url)
     })
   })
 
