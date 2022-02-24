@@ -1,7 +1,7 @@
 const { join } = require("path")
 const electron = require("electron")
 const Module = require("module")
-const { readFileSync, existsSync } = require("fs")
+const { existsSync } = require("fs")
 
 electron.app.commandLine.appendSwitch("no-force-async-hooks-checks")
 
@@ -24,14 +24,12 @@ class BrowserWindow extends electron.BrowserWindow {
 let fakeAppSettings;
 Object.defineProperty(global, "appSettings", {
   configurable: true,
-  get() {
-    return fakeAppSettings;
-  },
+  get() { return fakeAppSettings },
   set(value) {
-    if (!value.hasOwnProperty("settings")) value.settings = {};
-    value.settings.DANGEROUS_ENABLE_DEVTOOLS_ONLY_ENABLE_IF_YOU_KNOW_WHAT_YOURE_DOING = true;
-    fakeAppSettings = value;
-  },
+    if (!value.hasOwnProperty("settings")) value.settings = {}
+    value.settings.DANGEROUS_ENABLE_DEVTOOLS_ONLY_ENABLE_IF_YOU_KNOW_WHAT_YOURE_DOING = true
+    fakeAppSettings = value
+  }
 })
 
 electron.app.once("ready", () => {

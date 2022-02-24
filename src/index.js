@@ -1,17 +1,21 @@
-const { app, BrowserWindow, ipcMain, dialog, shell } = require("electron")
+const { app, BrowserWindow, ipcMain, dialog } = require("electron")
 const { join } = require("path")
 const { format } = require("url")
+
 app.commandLine.appendSwitch("disable-pinch")
+app.commandLine.appendSwitch("enable-transparent-visuals");
+app.disableHardwareAcceleration()
 
 ipcMain.on("getPath", (event, id) => event.returnValue = app.getPath(id))
 ipcMain.on("quit", (event) => event.returnValue = app.quit())
 
-app.whenReady().then(() => {
-  const page = format({
-    protocol: "file",
-    slashes: true,
-    pathname: join(__dirname, "..", "page", "index.html") 
-  })
+const page = format({
+  protocol: "file",
+  slashes: true,
+  pathname: join(__dirname, "..", "page", "index.html") 
+})
+
+function onAppReady() {
   const win = new BrowserWindow({ 
     width: 500,
     height: 330,
@@ -19,7 +23,12 @@ app.whenReady().then(() => {
     frame: false,
     thickFrame: false,
     title: "Discord Re-envisioned - Installer",
-    backgroundColor: "#202225",
+    backgroundColor: "#0000",
+    transparent: true,
+    fullscreenable: false,
+    roundedCorners: false,
+    thickFrame: false,
+    WS_THICKFRAME: false,
     webPreferences: {
       webSecurity: true,
       preload: join(__dirname, "preload.js"),
@@ -40,4 +49,7 @@ app.whenReady().then(() => {
       res(result.filePaths[0])
     })
   }))
-})
+}
+
+if (process.platform === "linux") app.on("ready", (event) => setTimeout(onAppReady, 500, event))
+else app.on("ready", onAppReady)

@@ -1,5 +1,5 @@
 const { ipcRenderer, webFrame, shell } = require("electron")
-const { join } = require("path")
+const _path = require("path")
 const fs = require("fs")
 
 webFrame.setVisualZoomLevelLimits(1, 1)
@@ -8,6 +8,9 @@ const getPath = ipcRenderer.sendSync.bind(null, "getPath")
 function quit() { ipcRenderer.sendSync("quit") }
 
 const showMessageBox = ipcRenderer.invoke.bind(null, "showMessageBox")
+const selectDirectory = ipcRenderer.invoke.bind(null, "selectDirectory")
+
+function join(...path) { return _path.join(...path).replace(/(\\|\/)/g, "/") }
 
 Object.defineProperty(global, "require", { value: require })
 
@@ -22,10 +25,6 @@ function makeDrDir() {
   fs.mkdirSync(DrDir)
   fs.copyFileSync(join(__dirname, "..", "injection", "index.js"), join(DrDir, "index.js"))
   fs.copyFileSync(join(__dirname, "..", "injection", "preload.js"), join(DrDir, "preload.js"))
-}
-if (!eval(localStorage.getItem("hasMadeDir") ?? "false")) {
-  makeDrDir()
-  localStorage.setItem("hasMadeDir", true)
 }
 
 function getDiscordResources(type) {
@@ -57,202 +56,116 @@ function getDiscordResources(type) {
   }
 }
 
+function selectAll(selector, callback = () => {}) {
+  for (const element of Array.from(document.querySelectorAll(selector))) {
+    callback(element)
+  }
+}
+
+const logger = new class {
+  _(emoji, log) {
+    document.getElementById("logs").append(Object.assign(document.createElement("div"), {
+      className: "log",
+      innerHTML: emoji.length === 2 ? `<span style="font-size: 13px; margin-right: 5px;">${emoji}</span><span>: ${log}</span>` : emoji
+    }))
+  }
+  error(err) { this._("❌", err) }
+  warn(warn) { this._("⚠️", warn) }
+  success(success) { this._("✔️", success) }
+  log(log) { this._(log) }
+  space() {
+    document.getElementById("logs").append(Object.assign(document.createElement("div"), {
+      className: "space-log"
+    }))
+  }
+}
+
+const props = {
+  action: null,
+  release: null,
+  path: null
+}
+
+const actions = {
+  install: function() {
+    console.log(props);
+    logger.log(`Installing into discord ${props.release}`)
+  
+    const app = join(props.path, "app")
+    if (fs.existsSync(app)) {
+      logger.warn("'app' folder exists! Deleting folder...")
+      try {
+        fs.rmSync(app, { recursive: true, force: true })
+      } catch (error) { return logger.error(error.message) }
+      logger.success("Deleted 'app' folder!")
+    }
+    try {
+      logger.log("Making 'app' folder...")
+      fs.mkdirSync(app)
+    } catch (error) { return logger.error(error.message) }
+    logger.success("Made 'app' folder!")
+    try {
+      logger.log("Making 'index.js' file...")
+      fs.writeFileSync(join(app, "index.js"), `require("${DrDir.replace("\\", "/")}")`)
+    } catch (error) { return logger.error(error.message) }
+    logger.success("Made 'index.js' file!")
+    try {
+      logger.log("Making 'package.json' file...")
+      fs.writeFileSync(join(app, "package.json"), JSON.stringify({
+        name: "discord", index: "./index.js"
+      }))
+    } catch (error) { return logger.error(error.message) }
+    logger.success("Made 'package.json' file!")
+    makeDrDir()
+    logger.success("Installed perfectly!")
+  },
+  uninstall: function() {
+    logger.log(`Uninstalling from Discord ${props.release}`)
+    const app = join(props.path, "app")
+    if (fs.existsSync(app)) {
+      logger.log("Deleting 'app' folder...")
+      try {
+        fs.rmSync(app, { recursive: true, force: true })
+      } catch (error) { return logger.error(error.message) }
+      logger.success("Deleted 'app' folder!")
+    }
+    logger.success("Uninstalled perfectly!")
+  }
+}
+
 function domLoaded() {
+  document.getElementById("close-app").onclick = quit
   setTimeout(() => {
     document.getElementById("loader").classList.add("fade")
-    setTimeout(() => document.getElementById("loader").remove(), 350)
+    document.getElementById("body").classList.add("fade")
+    setTimeout(() => document.getElementById("loader").style.display = "none", 350)
   }, 1650)
-  document.getElementById("github").onclick = () => shell.openExternal("https://github.com/Dr-Discord")
-  document.getElementById("website").onclick = () => shell.openExternal("https://Dr-Discord.github.io")
-  document.getElementById("close-app").onclick = () => quit()
 
-  for (const ele of Array.from(document.querySelectorAll("#footer-buttons > div"))) {
-    let tooltip = {}
-    ele.onmouseout = () => {
-      tooltip.remove()
+  selectAll(".discord-card", (ele) => {
+    function updatePath(newPath) {
+      if (!newPath) return
+      ele.lastElementChild.lastElementChild.innerHTML = newPath
     }
-    ele.onmouseover = () => {
-      tooltip = document.createElement("div")
-      tooltip.id = "tooltip"
-      tooltip.style.position = "fixed"
-      const bounding = ele.getBoundingClientRect()
-      tooltip.style.left = `${bounding.right + 5}px`
-      tooltip.innerHTML = ele.getAttribute("tooltip")
-      document.body.appendChild(tooltip)
-      tooltip.style.top = `${(bounding.top - tooltip.clientHeight) + 24}px`
+    updatePath(getDiscordResources(ele.id))
+    ele.lastElementChild.lastElementChild.onclick = () => selectDirectory(props.path || getPath("userData")).then(updatePath)
+    ele.onclick = (event) => {
+      if (event.target === ele.lastElementChild.lastElementChild) return
+      props.path = ele.lastElementChild.lastElementChild.innerHTML
+      props.release = ele.id
+      document.getElementById("select-release").hidden = true
+      document.getElementById("select-action").hidden = false
     }
-  }
-  
-  fetch("https://discord.com/api/guilds/864267123694370836/widget.json").then(e => e.json()).then(json => {
-    document.getElementById("discord").onclick = () => shell.openExternal(json.instant_invite)
-  })
-  const { version } = require(join(__dirname, "..", "package.json"))
-  fetch("https://api.github.com/repos/Dr-Discord/installer/releases").then(e => e.json()).then((e) => {
-    if (e[0].tag_name !== version) showMessageBox({
-      message: "Your installer is out of date! Want to make",
-      buttons: ["Install", "Cancel"],
-      cancelId: 1
-    }).then(({ response }) => {
-      if (!response) return
-      shell.openExternal(e[0].assets.find(r => r.name.startsWith(process.platform === "linux" ? "linux" : process.platform === "win32" ? "windows" : "mac")).browser_download_url)
-    })
   })
 
-  const install = {
-    stable: {
-      path: null,
-      selected: false
-    },
-    ptb: {
-      path: null,
-      selected: false
-    },
-    canary: {
-      path: null,
-      selected: false
+  selectAll(".select-card", (ele) => {
+    ele.onclick = () => {
+      props.action = ele.id
+      document.getElementById("select-action").hidden = true
+      document.getElementById("select-logs").hidden = false
+      const fun = actions[ele.id]
+      fun()
     }
-  }
-  const con = {
-    _log: (emoji, log) => {
-      console.log(emoji.length);
-      document.getElementById("installing-logs").append(Object.assign(document.createElement("div"), {
-        className: "log",
-        innerHTML: emoji.length === 2 ? `<span>${emoji}:</span><span>${log}</span>` : emoji
-      }))
-    },
-    error: function(err) {
-      this._log("❌", err)
-    },
-    warn: function(warn) {
-      this._log("⚠️", warn)
-    },
-    success: function(log) {
-      this._log("✔️", log)
-    },
-    log: function(log) {
-      this._log(log)
-    },
-    space: function() {
-      document.getElementById("installing-logs").append(Object.assign(document.createElement("div"), {
-        className: "space-log"
-      }))
-    },
-    clear: function() { document.getElementById("installing-logs").innerHTML = "" }
-  }
-  function showOtherPage(title) {
-    this.value = !this.value
-    document.getElementById("install").hidden = this.value
-    document.getElementById("uninstall").hidden = this.value
-    document.getElementById("select-discord").hidden = this.value
-    document.getElementById("installing-discord").hidden = !this.value
-    document.getElementById("installing-into").innerHTML = title
-    con.clear()
-  }
-  Object.defineProperty(global, "showOtherPage", { value: showOtherPage })
-  Object.defineProperty(global, "con", { value: con })
-  
-  for (const discord of Array.from(document.querySelectorAll(".discord-type"))) {
-    let path = getDiscordResources(discord.id)
-    const pathChild = discord.children[1].children[1].children[0]
-    function setPath(path) {
-      if (!path) path = "???"
-      pathChild.innerHTML = path
-      install[discord.id].path = path
-    }
-    setPath(path)
-    discord.children[3].onclick = () => require("electron").ipcRenderer.invoke("selectDirectory", install[discord.id].path).then((path) => setPath(path))
-    if (path) {
-      discord.classList.remove("doesnt-exist")
-      discord.onclick = (event) => {
-        if (event.path.includes(discord.children[3])) return
-        discord.classList.toggle("selected")
-        install[discord.id].selected = !install[discord.id].selected
-        const versions = Object.keys(install).map(e => install[e].selected && e).filter(e => e)
-        updateInstallButton(document.getElementById("install"), versions)
-        updateUnInstallButton(document.getElementById("uninstall"), versions)
-      }
-    }
-  }
-  function updateUnInstallButton(ele, versions) {
-    if (versions?.[0]) {
-      ele.classList.remove("disabled")
-      ele.onclick = () => {
-        showOtherPage(`Uninstalling from ${versions.join(", ")}`)
-        let ind = 1
-        _uninstall()
-        function _uninstall() {
-          if (ind > versions.length) return
-          if (ind !== 1) con.space()
-          const { path } = install[versions[ind - 1]]
-          con.log(`Uninstalling from Discord ${versions[ind - 1]}`)
-          const app = join(path, "app")
-          if (fs.existsSync(app)) {
-            con.log("Deleting 'app' folder...")
-            try {
-              fs.rmSync(app, { recursive: true, force: true })
-            } catch (error) { return con.error(error.message) }
-            con.success("Deleted 'app' folder!")
-          }
-          con.success("Uninstalled perfectly!")
-          setTimeout(_uninstall, 500)
-          ind++
-        }
-      }
-    }
-    else {
-      ele.classList.add("disabled")
-      ele.onclick = null
-    }
-  }
-  function updateInstallButton(ele, versions) {
-    if (versions?.[0]) {
-      ele.classList.remove("disabled")
-      ele.onclick = () => {
-        showOtherPage(`Installing into ${versions.join(", ")}`)
-        let ind = 1
-        _install()
-        function _install() {
-          if (ind > versions.length) return
-          if (ind !== 1) con.space()
-          const { path } = install[versions[ind - 1]]
-          con.log(`Installing into Discord ${versions[ind - 1]}`)
-          const app = join(path, "app")
-          if (fs.existsSync(app)) {
-            con.warn("'app' folder exists! Deleting folder...")
-            try {
-              fs.rmSync(app, { recursive: true, force: true })
-            } catch (error) { return con.error(error.message) }
-            con.success("Deleted 'app' folder!")
-          }
-          try {
-            con.log("Making 'app' folder...")
-            fs.mkdirSync(app)
-          } catch (error) { return con.error(error.message) }
-          con.success("Made 'app' folder!")
-          try {
-            con.log("Making 'index.js' file...")
-            fs.writeFileSync(join(app, "index.js"), `require("${DrDir.replace("\\", "/")}")`)
-          } catch (error) { return con.error(error.message) }
-          con.success("Made 'index.js' file!")
-          try {
-            con.log("Making 'package.json' file...")
-            fs.writeFileSync(join(app, "package.json"), JSON.stringify({
-              name: "discord", index: "./index.js"
-            }))
-          } catch (error) { return con.error(error.message) }
-          con.success("Made 'package.json' file!")
-          con.success("Installed perfectly!")
-          makeDrDir()
-          setTimeout(_install, 500)
-          ind++
-        }
-      }
-    }
-    else {
-      ele.classList.add("disabled")
-      ele.onclick = null
-    }
-  }
+  })
 }
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", domLoaded)
 else domLoaded()
