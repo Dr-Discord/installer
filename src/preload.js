@@ -2,6 +2,17 @@ const { ipcRenderer, webFrame, shell } = require("electron")
 const _path = require("path")
 const fs = require("fs")
 
+const devMode = ipcRenderer.sendSync("devMode")
+
+async function getFile(file) {
+  const url = devMode ? `http://127.0.0.1:5500/injection/${file}.js` : `https://raw.githubusercontent.com/Dr-Discord/installer/main/injection/${file}.js`
+  try {
+    const response = await fetch(url)
+    const text = await response.text()
+    return text 
+  } catch (error) { return Promise.resolve(false) }
+}
+
 webFrame.setVisualZoomLevelLimits(1, 1)
 
 const getPath = ipcRenderer.sendSync.bind(null, "getPath")
@@ -19,13 +30,6 @@ window.onkeydown = function(evt) {
 }
 
 const DrDir = join(getPath("appData"), "Discord_Re-envisioned")
-
-function makeDrDir() {
-  if (fs.existsSync(DrDir)) fs.rmSync(DrDir, { recursive: true, force: true })
-  fs.mkdirSync(DrDir)
-  fs.copyFileSync(join(__dirname, "..", "injection", "index.js"), join(DrDir, "index.js"))
-  fs.copyFileSync(join(__dirname, "..", "injection", "preload.js"), join(DrDir, "preload.js"))
-}
 
 function getDiscordResources(type) {
   if (process.platform === "darwin") {
@@ -63,21 +67,46 @@ function selectAll(selector, callback = () => {}) {
 }
 
 const logger = new class {
+  get logEle() { return document.getElementById("logs") }
   _(emoji, log) {
-    document.getElementById("logs").append(Object.assign(document.createElement("div"), {
+    this.logEle.append(Object.assign(document.createElement("div"), {
       className: "log",
       innerHTML: emoji.length === 2 ? `<span style="font-size: 13px; margin-right: 5px;">${emoji}</span><span>: ${log}</span>` : emoji
     }))
+    this.logEle.scrollTo({ top: this.logEle.scrollHeight })
   }
   error(err) { this._("❌", err) }
   warn(warn) { this._("⚠️", warn) }
   success(success) { this._("✔️", success) }
   log(log) { this._(log) }
   space() {
-    document.getElementById("logs").append(Object.assign(document.createElement("div"), {
+    this.logEle.append(Object.assign(document.createElement("div"), {
       className: "space-log"
     }))
   }
+}
+
+async function makeDrDir() {
+  if (fs.existsSync(DrDir)) fs.rmSync(DrDir, { recursive: true, force: true })
+  fs.mkdirSync(DrDir)
+  logger.space()
+  logger.log("Setting up dr file dir")
+  try {
+    logger.success("Setting up dr dir...")
+
+    const index = await getFile("index")
+    if (!index) fs.copyFileSync(join(__dirname, "..", "injection", "index.js"), join(DrDir, "index.js"))
+    else fs.writeFileSync(join(DrDir, "index.js"), index)
+
+    const preload = await getFile("preload")
+    if (!preload) fs.copyFileSync(join(__dirname, "..", "injection", "preload.js"), join(DrDir, "preload.js"))
+    else fs.writeFileSync(join(DrDir, "preload.js"), preload)
+
+    logger.success("Made 'preload.js'")
+    logger.success("Made dr dir!")
+    logger.space()
+    logger.success("Installed perfectly!")
+  } catch (error) { return logger.error(error.message) }
 }
 
 const props = {
@@ -88,7 +117,10 @@ const props = {
 
 const actions = {
   install: function() {
-    console.log(props);
+    if (devMode) {
+      logger.log("DevMode enabled fetching from localhost instead")
+      logger.space()
+    }
     logger.log(`Installing into discord ${props.release}`)
   
     const app = join(props.path, "app")
@@ -117,7 +149,6 @@ const actions = {
     } catch (error) { return logger.error(error.message) }
     logger.success("Made 'package.json' file!")
     makeDrDir()
-    logger.success("Installed perfectly!")
   },
   uninstall: function() {
     logger.log(`Uninstalling from Discord ${props.release}`)
@@ -154,12 +185,15 @@ function domLoaded() {
   }, 1650)
 
   selectAll(".discord-card", (ele) => {
+    let discordPath
     function updatePath(newPath) {
-      if (!newPath) return
+      if (!newPath) return ele.classList.add("disabled")
+      ele.classList.remove("disabled")
       ele.lastElementChild.lastElementChild.innerHTML = newPath
+      discordPath = newPath
     }
     updatePath(getDiscordResources(ele.id))
-    ele.lastElementChild.lastElementChild.onclick = () => selectDirectory(props.path || getPath("userData")).then(updatePath)
+    ele.lastElementChild.lastElementChild.onclick = () => selectDirectory(discordPath || getPath("userData")).then(updatePath)
     ele.onclick = (event) => {
       if (event.target === ele.lastElementChild.lastElementChild) return
       props.path = ele.lastElementChild.lastElementChild.innerHTML
