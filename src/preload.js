@@ -136,7 +136,7 @@ const props = {
 const actions = {
   install: function() {
     if (devMode) {
-      logger.log("DevMode enabled fetching from localhost instead")
+      logger.warn("DevMode enabled fetching from localhost instead")
       logger.space()
     }
     logger.log(`Installing into discord ${props.release}`)
