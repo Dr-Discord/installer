@@ -4,6 +4,8 @@ const fs = require("fs")
 
 const devMode = ipcRenderer.sendSync("devMode")
 
+let transparent = false
+
 async function getFile(file) {
   const url = devMode ? `http://127.0.0.1:5500/injection/${file}.js` : `https://raw.githubusercontent.com/Dr-Discord/installer/main/injection/${file}.js`
   try {
@@ -16,7 +18,7 @@ async function getFile(file) {
 webFrame.setVisualZoomLevelLimits(1, 1)
 
 const getPath = ipcRenderer.sendSync.bind(null, "getPath")
-function quit() { ipcRenderer.sendSync("quit") }
+const quit = ipcRenderer.sendSync.bind(null, "quit")
 
 const showMessageBox = ipcRenderer.invoke.bind(null, "showMessageBox")
 const selectDirectory = ipcRenderer.invoke.bind(null, "selectDirectory")
@@ -92,11 +94,9 @@ async function makeDrDir() {
   logger.space()
   logger.log("Setting up dr file dir")
   try {
-    logger.success("Setting up dr dir...")
-
     const index = await getFile("index")
     if (!index) fs.copyFileSync(join(__dirname, "..", "injection", "index.js"), join(DrDir, "index.js"))
-    else fs.writeFileSync(join(DrDir, "index.js"), index)
+    else fs.writeFileSync(join(DrDir, "index.js"), `const transparency = ${transparent}\n${index}`)
 
     const preload = await getFile("preload")
     if (!preload) fs.copyFileSync(join(__dirname, "..", "injection", "preload.js"), join(DrDir, "preload.js"))
@@ -122,7 +122,9 @@ const actions = {
       logger.space()
     }
     logger.log(`Installing into discord ${props.release}`)
-  
+    logger.log(`Transparency is ${transparent ? "enabled" : "disabled"}.`)
+    logger.space()
+
     const app = join(props.path, "app")
     if (fs.existsSync(app)) {
       logger.warn("'app' folder exists! Deleting folder...")
@@ -164,10 +166,12 @@ const actions = {
   }
 }
 
+function getNum(tag) { return Number(tag.replaceAll(".", "")) }
+
 function domLoaded() {
   const { version } = require(join(__dirname, "..", "package.json"))
   fetch("https://api.github.com/repos/Dr-Discord/installer/releases").then(e => e.json()).then(([e]) => {
-    if (Number(e.tag_name.replaceAll(".", "")) < Number(version.replaceAll(".", ""))) showMessageBox({
+    if (getNum(e.tag_name) < getNum(version)) showMessageBox({
       message: "Your installer is out of date! Want to update?",
       buttons: ["Cancel", "Install"],
       cancelId: 0
@@ -176,8 +180,8 @@ function domLoaded() {
       shell.openExternal(e.assets.find(r => r.name.startsWith(process.platform === "linux" ? "linux" : process.platform === "win32" ? "windows" : "mac")).browser_download_url)
     })
   })
-
-  document.getElementById("close-app").onclick = quit
+  document.getElementById("logo").onclick = () => { transparent = !transparent }
+  document.getElementById("close-app").onclick = () => quit()
   setTimeout(() => {
     document.getElementById("loader").classList.add("fade")
     document.getElementById("body").classList.add("fade")

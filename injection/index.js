@@ -8,8 +8,10 @@ electron.app.commandLine.appendSwitch("no-force-async-hooks-checks")
 class BrowserWindow extends electron.BrowserWindow {
   constructor(opts) {
     if (opts.title != "Discord") return super(opts)
-    opts.transparent = true
-    opts.backgroundColor = "#00000000"
+    if (typeof transparency === "boolean" && transparency === true) {
+      opts.transparent = true
+      opts.backgroundColor = "#00000000"
+    }
     const oldPreload = opts.webPreferences.preload
 
     opts.webPreferences.preload = join(__dirname, "preload.js")
@@ -18,7 +20,7 @@ class BrowserWindow extends electron.BrowserWindow {
 
     const win = new electron.BrowserWindow(opts)
     win.webContents.on("did-finish-load", () => {
-      win.webContents.executeJavaScript("window.__DR__ELECTRON__BACKEND__.init(window.eval)")
+      win.webContents.executeJavaScript("window.__DR__ELECTRON__BACKEND__.init((code) => window.eval(code))")
     })
     
     return win 
@@ -27,34 +29,26 @@ class BrowserWindow extends electron.BrowserWindow {
 
 // Enable DevTools on Stable.
 try {
-  let fakeAppSettings;
+  let fakeAppSettings
   Object.defineProperty(global, "appSettings", {
     configurable: true,
-    get() {
-      return fakeAppSettings;
-    },
+    get() { return fakeAppSettings },
     set(value) {
-      if (!value.hasOwnProperty("settings")) value.settings = {};
-      value.settings.DANGEROUS_ENABLE_DEVTOOLS_ONLY_ENABLE_IF_YOU_KNOW_WHAT_YOURE_DOING = true;
-      fakeAppSettings = value;
+      if (!value.hasOwnProperty("settings")) value.settings = {}
+      value.settings.DANGEROUS_ENABLE_DEVTOOLS_ONLY_ENABLE_IF_YOU_KNOW_WHAT_YOURE_DOING = true
+      fakeAppSettings = value
     }
   })
 } catch (error) {}
 
 electron.app.once("ready", () => {
   electron.session.defaultSession.webRequest.onHeadersReceived(function({ responseHeaders }, callback) {
-    delete responseHeaders["content-security-policy-report-only"]
-    delete responseHeaders["content-security-policy"]
+    for (const responseHeader in responseHeaders) 
+      if (responseHeader.startsWith("content-security-policy"))
+        delete responseHeaders[responseHeader]
     
-    callback({ 
-      cancel: false, 
-      responseHeaders
-    })
+    callback({ cancel: false, responseHeaders })
   })
-  try {
-    const { default: installExtension, REACT_DEVELOPER_TOOLS } = require("electron-devtools-installer")
-    installExtension(REACT_DEVELOPER_TOOLS)
-  } catch (error) {}
 })
 
 Object.assign(BrowserWindow, electron.BrowserWindow)
