@@ -6,7 +6,7 @@ app.commandLine.appendSwitch("disable-pinch")
 app.commandLine.appendSwitch("enable-transparent-visuals")
 app.disableHardwareAcceleration()
 
-const devMode = true
+const devMode = false
 ipcMain.on("devMode", (event, id) => event.returnValue = devMode)
 ipcMain.on("getPath", (event, id) => event.returnValue = app.getPath(id))
 ipcMain.on("quit", (event) => event.returnValue = app.quit())
