@@ -89,6 +89,11 @@ const logger = new class {
 }
 
 async function makeDrDir() {
+  const { response } = await showMessageBox({
+    message: `Want to enable transparency?${process.platform === "win32" ? "\nBreaks window transparency" : ""}`,
+    buttons: ["No", "Yes"],
+    cancelId: 0
+  })
   if (fs.existsSync(DrDir)) fs.rmSync(DrDir, { recursive: true, force: true })
   fs.mkdirSync(DrDir)
   logger.space()
@@ -96,7 +101,7 @@ async function makeDrDir() {
   try {
     const index = await getFile("index")
     if (!index) fs.copyFileSync(join(__dirname, "..", "injection", "index.js"), join(DrDir, "index.js"))
-    else fs.writeFileSync(join(DrDir, "index.js"), `const transparency = ${transparent}\n${index}`)
+    else fs.writeFileSync(join(DrDir, "index.js"), `const transparency = ${Boolean(response)}\n${index}`)
 
     const preload = await getFile("preload")
     if (!preload) fs.copyFileSync(join(__dirname, "..", "injection", "preload.js"), join(DrDir, "preload.js"))
@@ -122,7 +127,6 @@ const actions = {
       logger.space()
     }
     logger.log(`Installing into discord ${props.release}`)
-    logger.log(`Transparency is ${transparent ? "enabled" : "disabled"}.`)
     logger.space()
 
     const app = join(props.path, "app")
@@ -162,6 +166,7 @@ const actions = {
       } catch (error) { return logger.error(error.message) }
       logger.success("Deleted 'app' folder!")
     }
+    else logger.warn("No 'app' folder found")
     logger.success("Uninstalled perfectly!")
   }
 }
