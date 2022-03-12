@@ -16,22 +16,25 @@
   },
   "build": {
     "appId": "com.installer.app",
+    "artifactName": "${os}-installer-${version}.${ext}",
+    "productName": "Discord Re-envisioned - Installer",
     "win": {
       "target": "portable",
-      "icon": "./assets/icon.ico"
+      "icon": "./assets/icon.png"
     },
     "linux": {
-      "target": "appImage",
-      "icon": "./assets/icon.ico"
+      "target": "AppImage",
+      "icon": "./assets/icon.png",
+      "category": "Utility"
     },
     "mac": {
       "target": "zip",
       "type": "distribution",
+      "category": "public.app-category.utilities",
       "icon": "./assets/icon.icns"
     },
     "portable": {
-      "unicode": false,
-      "artifactName": "installer.exe"
+      "artifactName": "${os}-installer-${version}.${ext}"
     }
   }
 }
