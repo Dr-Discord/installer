@@ -189,7 +189,8 @@ function getNum(tag) { return Number(tag.replaceAll(".", "")) }
 function domLoaded() {
   const { version } = require(join(__dirname, "..", "package.json"))
   fetch("https://api.github.com/repos/Dr-Discord/installer/releases").then(e => e.json()).then(([e]) => {
-    if (getNum(e.tag_name) < getNum(version)) showMessageBox({
+    console.log(getNum(e.tag_name), getNum(version));
+    if (getNum(e.tag_name) > getNum(version)) showMessageBox({
       message: "Your installer is out of date! Want to update?",
       buttons: ["Cancel", "Install"],
       cancelId: 0
