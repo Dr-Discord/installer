@@ -1,9 +1,19 @@
 const { join } = require("path")
 const electron = require("electron")
 const Module = require("module")
-const { existsSync } = require("fs")
+const { existsSync, writeFileSync } = require("fs")
 
 electron.app.commandLine.appendSwitch("no-force-async-hooks-checks")
+
+if (!existsSync(join(__dirname, "settings.json"))) writeFileSync(join(__dirname, "settings.json"), "{\"transparent\":false}")
+const { transparent } = require(join(__dirname, "settings.json"))
+
+electron.ipcMain.handle("DR_TOGGLE_TRANSPARENCY", (event) => {
+  writeFileSync(join(__dirname, "settings.json"), `{"transparent":${!transparent}}`)
+  electron.app.relaunch()
+  electron.app.quit()
+})
+electron.ipcMain.on("DR_TRANSPARENT", (event) => event.returnValue = transparent)
 
 class BrowserWindow extends electron.BrowserWindow {
   constructor(opts) {

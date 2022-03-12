@@ -4,8 +4,6 @@ const fs = require("fs")
 
 const devMode = ipcRenderer.sendSync("devMode")
 
-let transparent = false
-
 async function getFile(file) {
   const url = devMode ? `http://127.0.0.1:5500/injection/${file}.js` : `https://raw.githubusercontent.com/Dr-Discord/installer/main/injection/${file}.js`
   try {
@@ -80,6 +78,11 @@ function selectAll(selector, callback = () => {}) {
 const logger = new class {
   get logEle() { return document.getElementById("logs") }
   _(emoji, log) {
+    this.logEle.append(Object.assign(document.createElement("div"), {
+      className: "log",
+      innerHTML: log ? `<span style="font-size: 13px; margin-right: 5px;">${emoji}</span><span>: ${log}</span>` : emoji
+    }))
+    this.logEle.scrollTo({ top: this.logEle.scrollHeight })
     drLog(...(() => {
       let title = "log"
       if (!log)
@@ -91,11 +94,6 @@ const logger = new class {
       
       return [title, log]
     })())
-    this.logEle.append(Object.assign(document.createElement("div"), {
-      className: "log",
-      innerHTML: log ? `<span style="font-size: 13px; margin-right: 5px;">${emoji}</span><span>: ${log}</span>` : emoji
-    }))
-    this.logEle.scrollTo({ top: this.logEle.scrollHeight })
   }
   error(err) { this._("❌", err) }
   warn(warn) { this._("⚠️", warn) }
@@ -109,12 +107,6 @@ const logger = new class {
 }
 
 async function makeDrDir() {
-  const { response } = await showMessageBox({
-    message: `Want to enable transparency?${process.platform === "win32" ? "\nBreaks window transparency!" : ""}`,
-    buttons: ["No", "Yes"],
-    cancelId: 0
-  })
-  drLog("Transparency?", "User responce is ->", Boolean(response))
   if (fs.existsSync(DrDir)) fs.rmSync(DrDir, { recursive: true, force: true })
   fs.mkdirSync(DrDir)
   logger.space()
@@ -122,7 +114,7 @@ async function makeDrDir() {
   try {
     const index = await getFile("index")
     if (!index) fs.copyFileSync(join(__dirname, "..", "injection", "index.js"), join(DrDir, "index.js"))
-    else fs.writeFileSync(join(DrDir, "index.js"), `const transparency = ${Boolean(response)}\n${index}`)
+    else fs.writeFileSync(join(DrDir, "index.js"), index)
 
     const preload = await getFile("preload")
     if (!preload) fs.copyFileSync(join(__dirname, "..", "injection", "preload.js"), join(DrDir, "preload.js"))
@@ -206,7 +198,6 @@ function domLoaded() {
       shell.openExternal(e.assets.find(r => r.name.startsWith(process.platform === "linux" ? "linux" : process.platform === "win32" ? "windows" : "mac")).browser_download_url)
     })
   })
-  document.getElementById("logo").onclick = () => { transparent = !transparent }
   document.getElementById("close-app").onclick = () => quit()
   setTimeout(() => {
     document.getElementById("loader").classList.add("fade")
