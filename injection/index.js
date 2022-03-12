@@ -18,7 +18,7 @@ electron.ipcMain.on("DR_TRANSPARENT", (event) => event.returnValue = transparent
 class BrowserWindow extends electron.BrowserWindow {
   constructor(opts) {
     if (opts.title != "Discord") return super(opts)
-    if (typeof transparency === "boolean" && transparency === true) {
+    if (typeof transparent === "boolean" && transparent === true) {
       opts.transparent = true
       opts.backgroundColor = "#00000000"
     }
