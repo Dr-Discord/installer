@@ -5,7 +5,7 @@ require(preload)
 
 const transparent = ipcRenderer.sendSync("DR_TRANSPARENT")
 
-contextBridge.exposeInMainWorld("__DR__ELECTRON__BACKEND__", {
+contextBridge.exposeInMainWorld("__DR_ELECTRON_BACKEND__", {
   app: true,
   init: async function(eval) {
     const text = await fetch("https://raw.githubusercontent.com/Dr-Discord/Discord-Re-envisioned/main/build/index.js").then(e => e.text())

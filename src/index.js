@@ -25,7 +25,7 @@ function onAppReady() {
     frame: false,
     thickFrame: false,
     title: "Discord Re-envisioned - Installer",
-    backgroundColor: "#0000",
+    backgroundColor: "#00000000",
     transparent: true,
     fullscreenable: false,
     roundedCorners: false,
