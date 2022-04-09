@@ -38,7 +38,6 @@ window.onkeydown = function(evt) {
 }
 
 const DrDir = join(getPath("appData"), "Discord_Re-envisioned")
-drLog("Dr-App", DrDir)
 
 function getDiscordResources(type) {
   if (process.platform === "darwin") {
@@ -107,7 +106,7 @@ const logger = new class {
 }
 
 const CP = require("child_process")
-const { clearTimeout } = require("timers")
+
 class restartDiscord {
   constructor(release) {
     const platform = this[process.platform]
@@ -180,32 +179,44 @@ const actions = {
     logger.space()
 
     const app = join(props.path, "app")
+    const appOld = join(props.path, "app-old")
     if (fs.existsSync(app)) {
-      logger.warn("'app' folder exists! Deleting folder...")
+      logger.warn("'app' folder exists! Checking folder...")
+      let _continue = true
+      if (fs.existsSync(join(app, "package.json"))) {
+        const package = require(join(app, "package.json"))
+        if (package.name === "Discord Re-envisioned") _continue = false
+      }
       try {
-        fs.rmSync(app, { recursive: true, force: true })
+        if (_continue) {
+          if (fs.existsSync(appOld)) fs.rmSync(appOld, { recursive: true, force: true })
+          fs.renameSync(app, appOld)
+        }
+        else fs.rmSync(app, { recursive: true, force: true })
       } catch (error) { return logger.error(error.message) }
-      logger.success("Deleted 'app' folder!")
+      logger.success(_continue ? "Renamed 'app' folder to 'app-old'!" : "Deleted 'app' folder!")
+      logger.space()
     }
     try {
       logger.log("Making 'app' folder...")
       fs.mkdirSync(app)
     } catch (error) { return logger.error(error.message) }
     logger.success("Made 'app' folder!")
+    logger.space()
     try {
       logger.log("Making 'index.js' file...")
       fs.writeFileSync(join(app, "index.js"), `require("${DrDir.replace("\\", "/")}")`)
     } catch (error) { return logger.error(error.message) }
     logger.success("Made 'index.js' file!")
+    logger.space()
     try {
       logger.log("Making 'package.json' file...")
       fs.writeFileSync(join(app, "package.json"), JSON.stringify({
-        name: "discord", index: "./index.js"
+        name: "Discord Re-envisioned", index: "./index.js"
       }))
     } catch (error) { return logger.error(error.message) }
     logger.success("Made 'package.json' file!")
     await makeDrDir()
-    
     new restartDiscord(props.release)
   },
   uninstall: function() {
@@ -227,7 +238,13 @@ const actions = {
 
 function getNum(tag) { return Number(tag.replaceAll(".", "")) }
 
+const date = new Date()
+let isAprilFools = false
+if (date.getMonth() === 3 && date.getDate() === 1) isAprilFools = true
+
 function domLoaded() {
+  document.documentElement.setAttribute("dark-mode", !isAprilFools)
+  
   const { version } = require(join(__dirname, "..", "package.json"))
   fetch("https://api.github.com/repos/Dr-Discord/installer/releases").then(e => e.json()).then(([e]) => {
     console.log(getNum(e.tag_name), getNum(version));
