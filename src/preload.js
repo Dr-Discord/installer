@@ -125,7 +125,7 @@ class restartDiscord {
       CP.exec("ps -ax", (_, res) => {
         const Discord = res.split("\n").find(e => e.includes(path))
         if (Discord) return setTimeout(() => start(path), 200)
-        CP.exec(path.replaceAll(" ", "\\ "))
+        shell.openPath(join(path, "..", "..", "..").replaceAll(" ", "\\ "))
         logger.log("Restarted discord.")
       })
     }
