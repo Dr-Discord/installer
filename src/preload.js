@@ -25,6 +25,7 @@ const drLog = (title, ...input) => {
 
 const getPath = ipcRenderer.sendSync.bind(null, "getPath")
 const quit = ipcRenderer.sendSync.bind(null, "quit")
+const restart = ipcRenderer.sendSync.bind(null, "restart")
 
 const showMessageBox = ipcRenderer.invoke.bind(null, "showMessageBox")
 const selectDirectory = ipcRenderer.invoke.bind(null, "selectDirectory")
@@ -244,10 +245,9 @@ if (date.getMonth() === 3 && date.getDate() === 1) isAprilFools = true
 
 function domLoaded() {
   document.documentElement.setAttribute("dark-mode", !isAprilFools)
-  
+
   const { version } = require(join(__dirname, "..", "package.json"))
   fetch("https://api.github.com/repos/Dr-Discord/installer/releases").then(e => e.json()).then(([e]) => {
-    console.log(getNum(e.tag_name), getNum(version));
     if (getNum(e.tag_name) > getNum(version)) showMessageBox({
       message: "Your installer is out of date! Want to update?",
       buttons: ["Cancel", "Install"],
@@ -257,11 +257,15 @@ function domLoaded() {
       shell.openExternal(e.assets.find(r => r.name.startsWith(process.platform === "linux" ? "linux" : process.platform === "win32" ? "windows" : "mac")).browser_download_url)
     })
   })
+
   let doubleClick
-  document.getElementById("close-app").onclick = () => {
+  const closeApp = document.getElementById("close-app")
+  closeApp.onclick = () => {
     if (doubleClick) location.reload()
     doubleClick = setTimeout(() => quit(), 400)
   }
+  closeApp.oncontextmenu = () => restart()
+  
   setTimeout(() => {
     document.getElementById("loader").classList.add("fade")
     document.getElementById("body").classList.add("fade")

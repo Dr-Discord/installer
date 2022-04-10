@@ -10,6 +10,10 @@ const devMode = false
 ipcMain.on("devMode", (event, id) => event.returnValue = devMode)
 ipcMain.on("getPath", (event, id) => event.returnValue = app.getPath(id))
 ipcMain.on("quit", (event) => event.returnValue = app.quit())
+ipcMain.on("restart", (event) => {
+  app.relaunch()
+  event.returnValue = app.quit()
+})
 
 const page = format({
   protocol: "file",
