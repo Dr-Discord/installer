@@ -243,6 +243,17 @@ const date = new Date()
 let isAprilFools = false
 if (date.getMonth() === 3 && date.getDate() === 1) isAprilFools = true
 
+function togglePopup() {
+  const found = document.querySelector("#content > :not([hidden])")
+  if (found === document.getElementById("popup")) {
+    found.hidden = true
+    return this.old.hidden = false
+  }
+  found.hidden = true
+  this.old = found
+  document.getElementById("popup").hidden = false
+}
+
 function domLoaded() {
   document.documentElement.setAttribute("dark-mode", !isAprilFools)
 
@@ -266,6 +277,8 @@ function domLoaded() {
   }
   closeApp.oncontextmenu = () => restart()
   
+  document.getElementById("logo").onclick = togglePopup
+
   setTimeout(() => {
     document.getElementById("loader").classList.add("fade")
     document.getElementById("body").classList.add("fade")
@@ -300,6 +313,13 @@ function domLoaded() {
       fun()
     }
   })
+
+  selectAll(".dev", (ele) => {
+    ele.onclick = () => shell.openExternal(`https://github.com/${ele.id}`)
+  })
+  document.getElementById("april-fools-toggle").onclick = () => {
+    document.documentElement.setAttribute("dark-mode", !JSON.parse(document.documentElement.getAttribute("dark-mode")))
+  }
 }
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", domLoaded)
 else domLoaded()
