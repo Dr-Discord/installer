@@ -133,9 +133,9 @@ class restartDiscord {
     CP.exec("ps -ax", (_, res) => {
       const Discord = res.split("\n").find(e => e.includes(`Discord${release === "stable" ? "" : ` ${release.toUpperCase().substring(1, 0)}${release.substring(1)}`}.app/Contents/MacOS/Discord`))
       if (!Discord) return logger.log("No Discord instance found.")
-      const matched = Discord.match(/([0-9])+ (\?\?|ttys([0-9])+)( |)+([0-9])+:([0-9])+\.([0-9])+ /)
+      const matched = Discord.match(/ ([0-9])+ (\?\?|ttys([0-9])+)( |)+([0-9])+:([0-9])+\.([0-9])+ /)
       if (!matched) return logger.log("No Discord instance found.")
-      CP.exec(`kill ${Discord.split(" ")[0]}`, () => start(Discord.replace(matched[0], "")))
+      CP.exec(`kill ${Discord.split(" ")[1]}`, () => start(Discord.replace(matched[0], "")))
     })
   }
 }
