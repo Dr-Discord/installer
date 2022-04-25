@@ -7,29 +7,34 @@ electron.app.commandLine.appendSwitch("no-force-async-hooks-checks")
 if (!existsSync(join(__dirname, "settings.json"))) writeFileSync(join(__dirname, "settings.json"), "{\"transparent\":false}")
 const { transparent } = require(join(__dirname, "settings.json"))
 
-electron.ipcMain.handle("DR_TOGGLE_TRANSPARENCY", (event) => {
+electron.ipcMain.handle("DR_TOGGLE_TRANSPARENCY", () => {
   writeFileSync(join(__dirname, "settings.json"), `{"transparent":${!transparent}}`)
   electron.app.relaunch()
   electron.app.quit()
 })
 electron.ipcMain.on("DR_TRANSPARENT", (event) => event.returnValue = transparent)
 
+electron.ipcMain.on("DR_DISCORD_PRELOAD", (event) => event.returnValue = event.sender.DR_DISCORD_PRELOAD)
+
 class BrowserWindow extends electron.BrowserWindow {
   constructor(opts) {
     if (opts.title != "Discord") return super(opts)
     
-    if (typeof transparent === "boolean" && transparent === true) {
+    if (transparent) {
       opts.transparent = true
       opts.backgroundColor = "#00000000"
     }
-    const oldPreload = opts.webPreferences.preload
-    opts.webPreferences.preload = join(__dirname, "preload.js")
+    const old = opts.webPreferences.preload
+    
+    opts.webPreferences.preload = join( __dirname, "preload.js")
 
     super(opts)
-
-    electron.ipcMain.on("DR_DISCORD_PRELOAD", (event) => event.returnValue = oldPreload)
     
-    this.webContents.on("did-finish-load", () => { this.webContents.executeJavaScript("window.__DR_ELECTRON_BACKEND__.init((c) => window.eval(c))") })
+    this.webContents.DR_DISCORD_PRELOAD = old
+    this.webContents.on(
+      "did-finish-load", 
+      () => this.webContents.executeJavaScript("window.__DR_ELECTRON_BACKEND__.init((c) => window.eval(c))")
+    )
   }
 }
 
@@ -59,10 +64,6 @@ electron.app.once("ready", () => {
       responseHeaders
     })
   })
-  try {
-    const { default: installExtension, REACT_DEVELOPER_TOOLS } = require("electron-devtools-installer")
-    installExtension(REACT_DEVELOPER_TOOLS)
-  } catch (error) {}
 })
 
 const basePath = join(process.resourcesPath, "app.asar")
@@ -72,17 +73,8 @@ electron.app.name = pkg.name
 
 const electronPath = require.resolve("electron")
 const cached = require.cache[electronPath]
-const propertyNames = Object.getOwnPropertyNames(cached.exports)
 delete cached.exports
-
-const newElectron = {}
-for (const propertyName of propertyNames) {
-  Object.defineProperty(newElectron, propertyName, {
-    ...Object.getOwnPropertyDescriptor(electron, propertyName),
-    get: () => propertyName === "BrowserWindow" ? BrowserWindow : electron[propertyName]
-  })
-}
-cached.exports = newElectron
+cached.exports = { ...electron, BrowserWindow }
 
 // Load other discord mods | 'app-old' and if the 'module.exports' is a function it runs it and with the arg to load discord
 const appOld = join(process.resourcesPath, "app-old")

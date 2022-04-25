@@ -14,5 +14,6 @@ contextBridge.exposeInMainWorld("__DR_ELECTRON_BACKEND__", {
   transparent,
   toggleTransparency: async function() {
     await ipcRenderer.invoke("DR_TOGGLE_TRANSPARENCY")
-  }
+  },
+  restart: function() { ipcRenderer.send("DR_FULL_RESTART") }
 })
