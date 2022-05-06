@@ -1,6 +1,6 @@
 {
   "name": "installer",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "a installer to install Discord-Re-envisioned",
   "main": "./src/index.js",
   "scripts": {

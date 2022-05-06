@@ -213,7 +213,7 @@ const actions = {
     try {
       logger.log("Making 'package.json' file...")
       fs.writeFileSync(join(app, "package.json"), JSON.stringify({
-        name: "Discord Re-envisioned", index: "./index.js"
+        name: "Discord Re-envisioned", main: "./index.js"
       }))
     } catch (error) { return logger.error(error.message) }
     logger.success("Made 'package.json' file!")
