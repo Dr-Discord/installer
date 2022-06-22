@@ -1,6 +1,6 @@
 {
   "name": "installer",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "a installer to install Discord-Re-envisioned",
   "main": "./src/index.js",
   "scripts": {
@@ -12,7 +12,7 @@
   "license": "MIT",
   "devDependencies": {
     "electron": "^17.0.1",
-    "electron-packager": "^15.4.0"
+    "electron-packager": "^13.1.1"
   },
   "build": {
     "appId": "com.installer.app",
@@ -36,5 +36,8 @@
     "portable": {
       "artifactName": "${os}-installer-${version}.${ext}"
     }
+  },
+  "dependencies": {
+    "request": "^2.88.2"
   }
 }

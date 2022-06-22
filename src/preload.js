@@ -1,6 +1,7 @@
 const { ipcRenderer, webFrame, shell } = require("electron")
 const _path = require("path")
 const fs = require("fs")
+const request = require("request")
 
 const devMode = ipcRenderer.sendSync("devMode")
 
@@ -133,9 +134,9 @@ class restartDiscord {
     CP.exec("ps -ax", (_, res) => {
       const Discord = res.split("\n").find(e => e.includes(`Discord${release === "stable" ? "" : ` ${release.toUpperCase().substring(1, 0)}${release.substring(1)}`}.app/Contents/MacOS/Discord`))
       if (!Discord) return logger.log("No Discord instance found.")
-      const matched = Discord.match(/ ([0-9])+ (\?\?|ttys([0-9])+)( |)+([0-9])+:([0-9])+\.([0-9])+ /)
+      const matched = Discord.match(/( ?)([0-9]+) (\?\?|ttys([0-9])+)( |)+([0-9])+:([0-9])+\.([0-9])+ /)
       if (!matched) return logger.log("No Discord instance found.")
-      CP.exec(`kill ${Discord.split(" ")[1]}`, () => start(Discord.replace(matched[0], "")))
+      CP.exec(`kill ${matched[2]}`, () => start(Discord.replace(matched[0], "")))
     })
   }
 }
@@ -147,19 +148,27 @@ function makeDrDir() {
     logger.space()
     logger.log("Setting up dr file dir")
     try {
-      const index = await getFile("index")
-      if (!index) fs.copyFileSync(join(__dirname, "..", "injection", "index.js"), join(DrDir, "index.js"))
-      else fs.writeFileSync(join(DrDir, "index.js"), index)
-  
-      const preload = await getFile("preload")
-      if (!preload) fs.copyFileSync(join(__dirname, "..", "injection", "preload.js"), join(DrDir, "preload.js"))
-      else fs.writeFileSync(join(DrDir, "preload.js"), preload)
-  
-      logger.success("Made 'preload.js'")
       logger.success("Made dr dir!")
       logger.space()
-      logger.success("Installed perfectly!")
-      res()
+
+      request("https://api.github.com/repos/Dr-Discord/Discord-Re-envisioned/releases", {
+        headers: {
+          "User-Agent": "Installer"
+        }
+      }, (err, req, body) => {
+        const json = JSON.parse(body).shift()
+        request(json.assets.find(a => a.name.endsWith(".asar")).url, {
+          encoding: null,
+          headers: {
+            "User-Agent": "Updater", 
+            "Accept": "application/octet-stream"
+          }
+        }, (err, resp, body) => {
+          logger.success("Installed perfectly!")
+          require("original-fs").writeFileSync(join(DrDir, "built.asar"), body)
+          res()
+        })
+      })
     } catch (error) { return res(logger.error(error.message)) }
   })
 }
@@ -206,7 +215,7 @@ const actions = {
     logger.space()
     try {
       logger.log("Making 'index.js' file...")
-      fs.writeFileSync(join(app, "index.js"), `require("${DrDir.replace("\\", "/")}")`)
+      fs.writeFileSync(join(app, "index.js"), `require("${_path.join(DrDir, "built.asar").replace("\\", "/")}")`)
     } catch (error) { return logger.error(error.message) }
     logger.success("Made 'index.js' file!")
     logger.space()
