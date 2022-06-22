@@ -143,8 +143,7 @@ class restartDiscord {
 
 function makeDrDir() {
   return new Promise(async res => {
-    if (fs.existsSync(DrDir)) fs.rmSync(DrDir, { recursive: true, force: true })
-    fs.mkdirSync(DrDir)
+    if (!fs.existsSync(DrDir)) fs.mkdirSync(DrDir)
     logger.space()
     logger.log("Setting up dr file dir")
     try {
