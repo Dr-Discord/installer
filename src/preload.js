@@ -214,7 +214,7 @@ const actions = {
     logger.space()
     try {
       logger.log("Making 'index.js' file...")
-      fs.writeFileSync(join(app, "index.js"), `require("${_path.join(DrDir, "built.asar").replace("\\", "/")}")`)
+      fs.writeFileSync(join(app, "index.js"), `require("${_path.join(DrDir, "built.asar").replaceAll("\\", "/")}")`)
     } catch (error) { return logger.error(error.message) }
     logger.success("Made 'index.js' file!")
     logger.space()
